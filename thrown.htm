@@ -5,6 +5,16 @@
 
 <script>
 
+/*
+NOTE: according to rules as written, when changing dice number (e.g. 3d+2 -> 4d-1) 
+AND a very light object is thrown (damage = thr -2 **per die**) actual damage with 
+higher ST may be lower. E.g.:
+
+	3d +2 -3*2 = 3d -4 --> 2d
+	4d -1 -4*2 = 4d -9 --> 2d -2
+*/
+
+
 	function getValue(name) {
 		return document.getElementById(name).innerHTML
 	}
@@ -117,11 +127,17 @@
 		
 		modif = modif + Math.floor(dadi*thm[j]);
 		
-		dadi = dadi + 2 * Math.trunc(modif/7);
-		modif = modif % 7;
-	
-		dadi = dadi + 1 * Math.trunc(modif/4);
-		modif = modif % 4;		
+// conversione dei bonus +4 / +7
+
+		var conv = document.getElementById("conversione");
+		
+		if (conv.checked == true && dadi > 1) {
+			dadi = dadi + 2 * Math.trunc(modif/7);
+			modif = modif % 7;
+		
+			dadi = dadi + 1 * Math.trunc(modif/4);
+			modif = modif % 4;	
+		}
 		
 		var danno ='';
 		
@@ -149,6 +165,7 @@
 			document.getElementById("risultKO").style.display="block";
 		}
 		
+
 		
 		return;
 	}
@@ -261,11 +278,21 @@ button{
 	</div>
 </div>
 
+<p><input type="checkbox" id="conversione" checked onclick="run()"><span style="color:blue">Convert &plusmn;4 / &plusmn;7 bonus to &plusmn;1d / &plusmn;2d.</span></p>
+
 <div id="risultOK">
 <p>Your current Basic lift is: <strong><span id="bas"></span> lb</strong>.</p>
-<p>Youcan throw a <strong><span id="wei"></span> lb</strong> item (W.R.=<span id="wr1"></span>) <strong><span id="dis"></span> yd </strong>away.</p>
-<p>The item will do <strong><span id="da1"></span></strong> damage. Go roll <strong><span id="da2" style="color:green;"></span></strong> !</p>
-<p style="font-size:small;">NOTE: Damage is usually crushing, but <i>could</i> be cutting.<br>If throwing a weapon, use relevant skill, range and damage!</p>
+<p>You can throw a <span id="wei"></span> lb item <strong><span id="dis"></span> yd </strong>away.<br>
+Weight ratio is <strong><span id="wr1"></span></strong>.</p>
+
+<p>The item will do <strong><span id="da1"></span></strong> damage.<br>
+Go roll <strong><span id="da2" style="color:green;"></span></strong> !</p>
+
+<p style="font-size:small;"><b>NOTE</b>: Damage is usually crushing, but <i>could</i> be cutting.
+If throwing a weapon, use relevant skill, range and damage!<br>
+<span style="color:red"><b>WARN</b></span>: Game mechanics may produce <u>on purpose</u> weird results 
+(e.g. higher ST doing less damage when addin 1d and changing modifier from +2 to -1 when throwing something
+with a -2 <i>per die</i> malus).</p>
 </div>
 
 <div id="risultKO">
