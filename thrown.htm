@@ -1,0 +1,281 @@
+<html>
+<head>
+<title>Throwing calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<script>
+
+	function getValue(name) {
+		return document.getElementById(name).innerHTML
+	}
+	function setValue(name, value) {
+		return document.getElementById(name).innerHTML = value
+	}
+
+	function sign(val, dig){
+		return val.toLocaleString('en',{
+			minimumSignificantDigits: dig,
+			maximumSignificantDigits: dig
+		})
+	}	
+	
+	function raise(id, massimo, magn) {
+		var v = Number(id.innerHTML);
+	
+		id.innerHTML = Math.min(v + magn, massimo);
+		run();
+	}
+
+	function lower(id, minimo, magn) {
+		var v = Number(id.innerHTML);
+		
+		id.innerHTML = Math.max(v - magn, minimo)
+		run()
+	}
+
+	
+	function run(){
+		var ST = getValue("st");
+		var WT = getValue("wt");
+	
+		var bLift = ST*ST/5;
+		bLift > 10 ? bLift = Math.round(bLift) : bLift = bLift ;
+		
+		var WR = WT / bLift;
+		var throDst;
+		var throDmg;
+	
+	// *********************************************   Calcolo distanza
+	// WRD = lista dei weight ratio (0 - 23)
+	// MOD = lista dei mod distanza (0 - 23)
+	
+		var wrd = [0.00,0.05,0.10,0.15,0.20,0.25,0.30,0.40,0.50,0.75,1.00,1.50,2.00,2.50,3.00,4.00,5.00,6.00,7.00,8.00,9.00,10.0,12.0,Math.pow(10,9)];
+		var mod = [3.50,3.50,2.50,2.00,1.50,1.20,1.10,1.00,0.80,0.70,0.60,0.40,0.30,0.25,0.20,0.15,0.12,0.10,0.09,0.08,0.07,0.06,0.05,0.00];
+	
+		var i;
+		for (i = 1; i < wrd.length; i++) {
+			if (WR > wrd[i-1] && WR <= wrd[i]) {
+				throDst = ST * mod[i];
+				break;
+			}
+		}
+
+	// *********************************************   Calcolo danno
+	// WRM = lista dei weight ratio (0 - 8)
+	// THR = lista dei mod di danno (0 - 8)		
+	
+		var wrm = [0.000      , 0.125      , 0.250      , 0.500, 1.000      , 2.000 , 4.000,                     8.000,       Math.pow(10,9)];
+		var thr = ["thr -2 /d", "thr -2 /d", "thr -1 /d", "thr", "thr +1 /d", "thr" , "thr -1 /2d (round down)", "thr -1 /d", "thr -1 /d"];
+		var thm = [-2, -2, -1, 0, 1, 0, -0.5, -1, -1];
+		
+		var j;
+		for (j = 1; j < wrm.length; j++) {
+			if (WR > wrm[j-1] && WR <= wrm[j]) {
+				throDmg = thr[j];
+				break;
+			}
+		}
+		
+		var tabS  = [];
+		var tabS1 = [];
+		var tabS2 = [];
+
+		var tabD  = [];
+		var tabD1 = [];
+		var tabD2 = [];
+		
+		var tabM = [];
+		var tabM1 = [];
+		var tabM2 = [];		
+		
+		tatS1 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26];
+		tatD1 = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2];
+		tatM1 = [-6,-6,-5,-5,-4,-4,-3,-3,-2,-2,-1,-1, 0, 0, 1, 1, 2, 2, -1,-1,0, 0, 1, 1, 2, 2];
+				
+		tatS2 = [27,28,29,30,31,32,33,34,35,36,37,38,39,40,45,50,55,60,65,70,75,80,85,90,95,100];
+		tatD2 = [ 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 5, 5, 6, 7, 7, 8, 8, 9, 9,10,10, 11]; 
+		tatM2 = [-1,-1, 0, 0, 1, 1, 2, 2,-1,-1, 0, 0, 1, 1, 0, 2, 0,-1, 1, 0, 2, 0, 2, 0, 2,  0];
+		
+		tatS = tatS1.concat(tatS2);
+		tatD = tatD1.concat(tatD2);
+		tatM = tatM1.concat(tatM2);
+		
+		var dadi;
+		var modif;
+		var k;
+		
+		if (ST>=tatS[tatS.length-1]) {
+			k = tatS.length-1;
+		} else {
+			for (k = 0; k < tatS.length-1; k++) {
+				if (ST >= tatS[k] && ST < tatS[k+1]) {break;}
+			}		
+		}
+		
+		dadi  = tatD[k];
+		modif = tatM[k];
+		
+		modif = modif + Math.floor(dadi*thm[j]);
+		
+		dadi = dadi + 2 * Math.trunc(modif/7);
+		modif = modif % 7;
+	
+		dadi = dadi + 1 * Math.trunc(modif/4);
+		modif = modif % 4;		
+		
+		var danno ='';
+		
+		if (modif < 0) {
+			danno = dadi + "d " + modif;
+		} else if (modif == 0) {
+			danno = dadi + "d"
+		} else {
+			danno = dadi + "d +" + modif;
+		}
+		
+		setValue("bas", bLift);
+		setValue("wei", WT);
+		setValue("wr1", WR.toFixed(2));
+		setValue("wr2", WR.toFixed(2));
+		setValue("dis", sign(throDst,2));
+		setValue("da1", throDmg);
+		setValue("da2", danno);		
+		
+		if (WR <= 12) {
+			document.getElementById("risultOK").style.display="block";
+			document.getElementById("risultKO").style.display="none";
+		} else {
+			document.getElementById("risultOK").style.display="none";
+			document.getElementById("risultKO").style.display="block";
+		}
+		
+		
+		return;
+	}
+	
+
+
+</script>
+
+<style>
+
+body {
+	margin: 10px;
+	padding:0;
+	max-width:404px;
+	}
+
+.tabella {	
+	box-sizing: content-box;
+	border: 2px solid black;
+	padding: 0px;
+	width: 100%;
+	max-width: 400px;
+	display:block;
+}
+
+.righe {
+	display: flex;
+	flex-direction:row;
+	width: 100%;
+	height:3em;
+}
+
+.sta, .val, .but{
+	margin-top:0.5em;
+	margin-bottom:0.5em;
+	margin-left:1%;
+	margin-right:1%;
+	height:2em;
+	min-height:2em;
+	max-height:2em;
+	display:flex;
+	display: -webkit-flex; 
+}
+
+.sta{
+	width:23%;
+	text-align:left;
+}
+
+.val{
+	width:13%;
+	text-align:center;
+}
+
+.but{
+	width:13%;
+	text-align:center;
+}
+
+#st, #wt{
+	font-size:larger;
+}
+
+button{
+	box-sizing:border-box; 
+	height:2em;
+	min-height:2em;
+	max-height:2em;
+	width:90%;
+	padding:0;
+	margin:0;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	margin:auto;
+}
+
+.centrati{
+	margin:auto;
+}
+
+#risultOK, #risultKO{
+	display:none;
+}
+
+
+</style>
+
+</head>
+<body>
+
+
+<div class="tabella">
+	<div class="righe">
+		<div class="sta"><span class="centrati">Strength</span></div>
+		<div class="but"><button type="button" onclick="lower(st, 1, 10)">&#x25BC;&#x25BC;</button></div>
+		<div class="but"><button type="button" onclick="lower(st, 1, 1)">&#x25BC;</button></div>
+		<div class="val"><span class="centrati" id="st">10</span></div>
+		<div class="but"><button type="button" onclick="raise(st, 100, 1)">&#x25B2;</button></div>
+		<div class="but"><button type="button" onclick="raise(st, 100, 10)">&#x25B2;&#x25B2;</button></div>
+	</div>
+
+	<div class="righe">
+		<div class="sta"><span class="centrati">Item Wt</span></div>
+		<div class="but"><button type="button" onclick="lower(wt, 0.5, 10)">&#x25BC;&#x25BC;</button></div>
+		<div class="but"><button type="button" onclick="lower(wt, 0.5, 0.5)">&#x25BC;</button></div>
+		<div class="val"><span class="centrati" id="wt">1</span></div>
+		<div class="but"><button type="button" onclick="raise(wt, 1000, 0.5)">&#x25B2;</button></div>
+		<div class="but"><button type="button" onclick="raise(wt, 1000, 10)">&#x25B2;&#x25B2;</button></div>
+	</div>
+</div>
+
+<div id="risultOK">
+<p>Your current Basic lift is: <strong><span id="bas"></span> lb</strong>.</p>
+<p>Youcan throw a <strong><span id="wei"></span> lb</strong> item (W.R.=<span id="wr1"></span>) <strong><span id="dis"></span> yd </strong>away.</p>
+<p>The item will do <strong><span id="da1"></span></strong> damage. Go roll <strong><span id="da2" style="color:green;"></span></strong> !</p>
+<p style="font-size:small;">NOTE: Damage is usually crushing, but <i>could</i> be cutting.<br>If throwing a weapon, use relevant skill, range and damage!</p>
+</div>
+
+<div id="risultKO">
+<p>The object is too heavy (W.R.=<span id="wr2"></span>).<br><strong><span style="color:red;">You cannot throw it!</span></strong></p>
+</div>
+
+
+
+</body>
+
+</html>
+
+
