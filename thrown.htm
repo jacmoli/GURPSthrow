@@ -291,6 +291,7 @@ body {
 	bottom:5px;
 	left:5px;
 	right:5px;
+	overflow-y:auto;
 }
 
 .tabella {	
@@ -420,7 +421,7 @@ Go roll <strong><span id="da2" style="color:green;"></span></strong> !</p>
 	<div id="helptext">
 		<h2>Purpose of this game aid</h2>
 		<p>
-		This program calculates throwing distance and damage for a thrown object (<u>not a thrown weapon</u> which has its own stats).
+		This game aid calculates throwing distance and damage for a thrown object (<u>not a thrown weapon</u> which has its own stats).
 		Reference rules are <b>GURPS</b><sup>&#174;</sup> Basic Set, 4th edition.
 		</p>
 		<h3>Options</h3>
@@ -430,8 +431,8 @@ Go roll <strong><span id="da2" style="color:green;"></span></strong> !</p>
 		<p>
 		<b>Fix high ST:</b> damage is modified by the weight ratio with a <i><u>per die</u></i> modifier. This means that for high ST
 		(with high Basic Lift and low Weight Ratio) throwing the same object with a higher strength does <u>less</u> damage, e.g. when
-		switching from <i>thr&nbsp;-1/d</i> to <i>thr&nbsp;-2/d</i>. This fix sets the negative modifiers for low weight ratio to a <b>flat -1
-		or -2</b> (while modifiers for extra heavy items is still per die).
+		switching from <i>thr&nbsp;-1/d</i> to <i>thr&nbsp;-2/d</i>. This fix sets the negative modifiers for low weight ratio to a <b><i>flat</i>
+		-1 or -2</b> (while modifiers for extra heavy items are still "per die").
 		</p>
 	</div>
 	<div id="closehelp" onclick="hide('helpbox')">
