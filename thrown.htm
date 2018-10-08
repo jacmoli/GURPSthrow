@@ -4,17 +4,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <script>
-
-/*
-NOTE: according to rules as written, when changing dice number (e.g. 3d+2 -> 4d-1) 
-AND a very light object is thrown (damage = thr -2 **per die**) actual damage with 
-higher ST may be lower. E.g.:
-
-	3d +2 -3*2 = 3d -4 --> 2d
-	4d -1 -4*2 = 4d -9 --> 2d -2
-*/
-
-
 	function getValue(name) {
 		return document.getElementById(name).innerHTML
 	}
@@ -54,7 +43,8 @@ higher ST may be lower. E.g.:
 		var WR = WT / bLift;
 		var throDst;
 		var throDmg;
-	
+		
+
 	// *********************************************   Calcolo distanza
 	// WRD = lista dei weight ratio (0 - 23)
 	// MOD = lista dei mod distanza (0 - 23)
@@ -73,11 +63,20 @@ higher ST may be lower. E.g.:
 	// *********************************************   Calcolo danno
 	// WRM = lista dei weight ratio (0 - 8)
 	// THR = lista dei mod di danno (0 - 8)		
+	// THM = modificatore (per dado), versione numerica per calcoli
 	
 		var wrm = [0.000      , 0.125      , 0.250      , 0.500, 1.000      , 2.000 , 4.000,                     8.000,       Math.pow(10,9)];
-		var thr = ["thr -2 /d", "thr -2 /d", "thr -1 /d", "thr", "thr +1 /d", "thr" , "thr -1 /2d (round down)", "thr -1 /d", "thr -1 /d"];
-		var thm = [-2, -2, -1, 0, 1, 0, -0.5, -1, -1];
-		
+		var thr = [];
+
+	
+	// con il fix della forza i modificatori negativi per alta forza e basso peso diventano assoluti e non per dado
+		if (document.getElementById("STfix").checked == true) {
+			thr = [   "thr -2",    "thr -2",    "thr -1", "thr", "thr +1 /d", "thr" , "thr -1 /2d (round down)", "thr -1 /d", "thr -1 /d"];
+		} else {
+			thr = ["thr -2 /d", "thr -2 /d", "thr -1 /d", "thr", "thr +1 /d", "thr" , "thr -1 /2d (round down)", "thr -1 /d", "thr -1 /d"];
+		}
+	
+
 		var j;
 		for (j = 1; j < wrm.length; j++) {
 			if (WR > wrm[j-1] && WR <= wrm[j]) {
@@ -86,6 +85,7 @@ higher ST may be lower. E.g.:
 			}
 		}
 		
+	// Tabelle forza (S) VS dadi (D) e modificatore (M) di danno, spaccate su due righe. TASB = tabelle singole, TAT = totale
 		var tabS  = [];
 		var tabS1 = [];
 		var tabS2 = [];
@@ -124,20 +124,28 @@ higher ST may be lower. E.g.:
 		
 		dadi  = tatD[k];
 		modif = tatM[k];
+		var thm = [];
 		
-		modif = modif + Math.floor(dadi*thm[j]);
+// con il fix della forza i modificatori negativi per alta forza e basso peso diventano assoluti e non per dado
+		if (document.getElementById("STfix").checked == true) {
+			thm = [-2,           -2,       -1,     0, 1*dadi, 0*dadi, -0.5*dadi, -1*dadi, -1*dadi];
+		} else {
+			thm = [-2*dadi, -2*dadi, -1*dadi, 0*dadi, 1*dadi, 0*dadi, -0.5*dadi, -1*dadi, -1*dadi];
+		}
+		
+		modif = modif + Math.floor(thm[j]);		
 		
 // conversione dei bonus +4 / +7
-
-		var conv = document.getElementById("conversione");
-		
-		if (conv.checked == true && dadi > 1) {
+	
+		if (document.getElementById("conversione").checked == true && dadi > 1) {
 			dadi = dadi + 2 * Math.trunc(modif/7);
 			modif = modif % 7;
 		
 			dadi = dadi + 1 * Math.trunc(modif/4);
 			modif = modif % 4;	
 		}
+		
+		
 		
 		var danno ='';
 		
@@ -150,7 +158,6 @@ higher ST may be lower. E.g.:
 		}
 		
 		setValue("bas", bLift);
-		setValue("wei", WT);
 		setValue("wr1", WR.toFixed(2));
 		setValue("wr2", WR.toFixed(2));
 		setValue("dis", sign(throDst,2));
@@ -158,11 +165,11 @@ higher ST may be lower. E.g.:
 		setValue("da2", danno);		
 		
 		if (WR <= 12) {
-			document.getElementById("risultOK").style.display="block";
-			document.getElementById("risultKO").style.display="none";
+			show("risultOK");
+			hide("risultKO");
 		} else {
-			document.getElementById("risultOK").style.display="none";
-			document.getElementById("risultKO").style.display="block";
+			hide("risultOK");
+			show("risultKO");
 		}
 		
 
@@ -170,29 +177,134 @@ higher ST may be lower. E.g.:
 		return;
 	}
 	
+function show(elem){document.getElementById(elem).style.display="block";}
+function hide(elem){document.getElementById(elem).style.display="none";}
 
 
 </script>
 
 <style>
 
+* {
+	font-family: "Comic Sans MS";
+}
+
 body {
-	margin: 10px;
+	margin: 0;
 	padding:0;
+}
+
+#menu {
+	width:100%;
+	height: 3em;
+	display:flex;
+	display: -webkit-flex; 
+	margin-bottom:0.2em;
+}
+
+#menu-title {
+	width:60%;
+	height: 3em;
+	display:flex;
+	display: -webkit-flex; 
+}
+
+#menu-help, #menu-info {
+	box-sizing:border-box;
+	border: 2px solid black;
+	border-radius:1em;
+	width:18%;
+	height: 2em;
+	display:flex;
+	display: -webkit-flex; 
+	margin-top:auto;
+	margin-bottom:auto;
+}
+
+#menu-help {
+	margin-right: 2%;
+	background-color:#ffaaaa;
+}
+
+#menu-info {
+	margin-left: 2%;
+	background-color:#aaffaa;
+}
+
+#helpbox, #infobox {
+	margin: 0;
+	width:auto;
 	max-width:404px;
-	}
+	height:auto;
+	box-sizing:border-box;
+	display:none;
+	position:fixed;
+	top:5px;
+	left:5px;
+	bottom:5px;
+	right:5px;
+	background-color:#cccccc;
+	z-index:1;
+	padding:10px;
+	
+}
+
+#helptext, #infotext {
+	box-sizing:border-box;
+	background-color:#ffffff;
+	padding:3px;
+	position:absolute;
+	top:10px;
+	left:10px;
+	right:10px;
+	bottom:4em;	
+	overflow-y:scroll;
+}
+
+#closehelp, #closeinfo {
+	position:absolute;
+	display:flex;
+	display: -webkit-flex; 
+	left:30%;
+	right:30%;
+	bottom:1em;
+	box-sizing:border-box;
+	background-color:#aaaaff;
+	height:2em;
+	margin: auto;
+	border: 1px solid black;
+	border-radius: 1em;
+}
+
+
+
+#contenit {
+	margin:0;
+	padding:3px;
+	max-width:404px;
+	background-color:#ffffff;
+	width:auto;
+	height:auto;
+	box-sizing:border-box;
+	position:fixed;
+	top:5px;
+	bottom:5px;
+	left:5px;
+	right:5px;
+}
 
 .tabella {	
-	box-sizing: content-box;
+	box-sizing: border-box;
 	border: 2px solid black;
 	padding: 0px;
 	width: 100%;
-	max-width: 400px;
+	max-width: 404px;
 	display:block;
 }
 
 .righe {
 	display: flex;
+	display: -webkit-flex; 
 	flex-direction:row;
 	width: 100%;
 	height:3em;
@@ -256,6 +368,13 @@ button{
 
 </head>
 <body>
+<div id="contenit">
+
+<div id="menu">
+	<div id="menu-title"><span><b>GURPS</b><sup>&#174;</sup><br/>Throwing calculator</span></div>
+	<div id="menu-help" onclick="show('helpbox')"><span class="centrati">HELP</span></div>
+	<div id="menu-info" onclick="show('infobox')"><span class="centrati">INFO</span></div>
+</div>
 
 
 <div class="tabella">
@@ -278,27 +397,69 @@ button{
 	</div>
 </div>
 
-<p><input type="checkbox" id="conversione" checked onclick="run()"><span style="color:blue">Convert &plusmn;4 / &plusmn;7 bonus to &plusmn;1d / &plusmn;2d.</span></p>
+<p>
+<input type="checkbox" id="conversione" checked onclick="run()"><span style="color:blue">Convert &plusmn;4 / &plusmn;7 bonus to &plusmn;1d / &plusmn;2d.</span><br/>
+<input type="checkbox" id="STfix" checked onclick="run()"><span style="color:blue">Fix high ST damage (see info).</span></p>
 
 <div id="risultOK">
-<p>Your current Basic lift is: <strong><span id="bas"></span> lb</strong>.</p>
-<p>You can throw a <span id="wei"></span> lb item <strong><span id="dis"></span> yd </strong>away.<br>
-Weight ratio is <strong><span id="wr1"></span></strong>.</p>
+<p>Basic lift: <strong><span id="bas"></span> lb</strong>.</p>
+<p>Throwing distance: <strong><span id="dis"></span> yd.</strong><br>
+Weight ratio: <strong><span id="wr1"></span></strong>.</p>
 
 <p>The item will do <strong><span id="da1"></span></strong> damage.<br>
 Go roll <strong><span id="da2" style="color:green;"></span></strong> !</p>
-
-<p style="font-size:small;"><b>NOTE</b>: Damage is usually crushing, but <i>could</i> be cutting.
-If throwing a weapon, use relevant skill, range and damage!<br>
-<span style="color:red"><b>WARN</b></span>: Game mechanics may produce <u>on purpose</u> weird results 
-(e.g. higher ST doing less damage when addin 1d and changing modifier from +2 to -1 when throwing something
-with a -2 <i>per die</i> malus).</p>
 </div>
 
 <div id="risultKO">
 <p>The object is too heavy (W.R.=<span id="wr2"></span>).<br><strong><span style="color:red;">You cannot throw it!</span></strong></p>
 </div>
 
+</div>
+
+<div id="helpbox">
+	<div id="helptext">
+		<h2>Purpose of this game aid</h2>
+		<p>
+		This program calculates throwing distance and damage for a thrown object (<u>not a thrown weapon</u> which has its own stats).
+		Reference rules are <b>GURPS</b><sup>&#174;</sup> Basic Set, 4th edition.
+		</p>
+		<h3>Options</h3>
+		<p>
+		<b>Bonus conversion:</b> this flag converts each +4 to +1d and each +7 to +2d. Same for negatives (-4&nbsp;=&nbsp;-1d, -7&nbsp;=&nbsp;-2d).
+		</p>
+		<p>
+		<b>Fix high ST:</b> damage is modified by the weight ratio with a <i><u>per die</u></i> modifier. This means that for high ST
+		(with high Basic Lift and low Weight Ratio) throwing the same object with a higher strength does <u>less</u> damage, e.g. when
+		switching from <i>thr&nbsp;-1/d</i> to <i>thr&nbsp;-2/d</i>. This fix sets the negative modifiers for low weight ratio to a <b>flat -1
+		or -2</b> (while modifiers for extra heavy items is still per die).
+		</p>
+	</div>
+	<div id="closehelp" onclick="hide('helpbox')">
+		<span class="centrati">CLOSE</span>
+	</div>
+</div>
+
+<div id="infobox">
+	<div id="infotext">
+		<h2>Legal info</h2>
+		<p>
+		GURPS is a trademark of Steve Jackson Games, and its rules and art are copyrighted by Steve Jackson Games.<br/>
+		All rights are reserved by Steve Jackson Games.<br/>
+		This game aid is the original creation of Jacopo Molinari and is released for free distribution, and not for resale,
+		under the permission granted in the <a href="http://www.sjgames.com/general/online_policy.html">Steve Jackson Games
+		Online Policy</a>.
+		</p>
+		<h2>Disclaimer</h2>
+		<p>
+		The material rpesented here si my original creation, intended for use with the <a href="http:www.sjgames.com/gurps/">
+		<b><i>GURPS</i></b></a> system from <a href="http://www.sjgames.com/">Steve Jackson Games</a>.<br/>
+		This material is not official and is not endorsed by Steve Jackson Games.
+		</p>
+	</div>
+	<div id="closeinfo" onclick="hide('infobox')">
+		<span class="centrati">CLOSE</span>
+	</div>
+</div>
 
 
 </body>
